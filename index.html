@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flight Itinerary Generator</title>
+</head>
+<body>
+    <h1>Enter Your Flight Details</h1>
+    <form id="flightForm">
+        <div>
+            <label for="departureCity">Departure City:</label>
+            <input type="text" id="departureCity" name="departureCity" required><br><br>
+        </div>
+        <button type="button" onclick="generateItinerary()">Generate Itinerary</button>
+    </form>
+    <script>
+        async function generateItinerary() {
+            const formData = new FormData(document.getElementById('flightForm'));
+            const data = {};
+            formData.forEach((value, key) => data[key] = value);
+
+            try {
+                const response = await fetch('/generate-itinerary', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'flight_itinerary.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    console.error('Error generating PDF:', response.status);
+                    alert('Failed to generate itinerary.');
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                alert('Network error occurred.');
+            }
+        }
+    </script>
+</body>
+</html>
