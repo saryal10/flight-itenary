@@ -9,89 +9,16 @@
         input[type="text"], input[type="date"], input[type="number"] { width: 300px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
         button:hover { background-color: #0056b3; }
+        #connectingFlights { margin-top: 20px; }
+        .connecting-flight-form { border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
+        .remove-flight-button { background-color: #dc3545; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script>
-        function generateItinerary() {
-            const passengerName = document.getElementById('passengerName').value;
-            const departureCity = document.getElementById('departureCity').value.toUpperCase();
-            const arrivalCity = document.getElementById('arrivalCity').value.toUpperCase();
-            const departureDate = document.getElementById('departureDate').value;
-            const departureTime = document.getElementById('departureTime').value;
-            const airline = document.getElementById('airline').value;
-            const flightNumber = document.getElementById('flightNumber').value.toUpperCase();
-            const bookingReference = document.getElementById('bookingReference').value.toUpperCase();
-            const gate = document.getElementById('gate').value.toUpperCase();
-            const seat = document.getElementById('seat').value.toUpperCase();
-
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF();
-
-            const title = "FLIGHT ITINERARY";
-            const passengerInfo = `Passenger: ${passengerName}`;
-            const bookingInfo = `Booking Reference: ${bookingReference}`;
-            const airlineInfo = `Airline: ${airline}`;
-            const flightDetailsTitle = "Flight Details:";
-            const fromTo = `From: ${departureCity} to ${arrivalCity}`;
-            const dateTime = `Date: ${departureDate} ${departureTime}`;
-            const flightNumInfo = `Flight: ${airline} - ${flightNumber}`;
-            const gateInfo = gate ? `Gate: ${gate}` : '';
-            const seatInfo = seat ? `Seat: ${seat}` : '';
-            const notes = "Please arrive at the airport at least 2 hours prior to departure. Check the airline's website for the latest updates on your flight.";
-
-            let y = 20;
-            const lineHeight = 10;
-
-            pdf.setFontSize(16);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(title, 10, y);
-            y += lineHeight + 5;
-            pdf.line(10, y - 2, 200, y - 2);
-
-            pdf.setFontSize(12);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(passengerInfo, 10, y);
-            y += lineHeight;
-            pdf.text(bookingInfo, 10, y);
-            y += lineHeight;
-            pdf.text(airlineInfo, 10, y);
-            y += lineHeight + 5;
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(flightDetailsTitle, 10, y);
-            y += lineHeight;
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(fromTo, 15, y);
-            y += lineHeight;
-            pdf.text(dateTime, 15, y);
-            y += lineHeight;
-            pdf.text(flightNumInfo, 15, y);
-            y += lineHeight;
-            if (gateInfo) {
-                pdf.text(gateInfo, 15, y);
-                y += lineHeight;
-            }
-            if (seatInfo) {
-                pdf.text(seatInfo, 15, y);
-                y += lineHeight;
-            }
-            y += 10;
-
-            pdf.setFont('helvetica', 'italic');
-            pdf.setFontSize(10);
-            const notesLines = pdf.splitTextToSize(notes, 190);
-            notesLines.forEach(line => {
-                pdf.text(line, 10, y);
-                y += lineHeight - 2;
-            });
-
-            pdf.save('flight_itinerary.pdf');
-        }
-    </script>
 </head>
 <body>
     <h1>Generate Your Flight Itinerary</h1>
-    <form id="flightForm">
+    <form id="mainFlightForm">
+        <h2>Main Flight</h2>
         <div class="form-group">
             <label for="passengerName">Passenger Name:</label>
             <input type="text" id="passengerName" name="passengerName" required>
@@ -124,15 +51,146 @@
             <label for="bookingReference">Booking Reference:</label>
             <input type="text" id="bookingReference" name="bookingReference">
         </div>
-        <div class="form-group">
-            <label for="gate">Gate (optional):</label>
-            <input type="text" id="gate" name="gate">
-        </div>
-        <div class="form-group">
-            <label for="seat">Seat (optional):</label>
-            <input type="text" id="seat" name="seat">
-        </div>
-        <button type="button" onclick="generateItinerary()">Generate Flight Itinerary</button>
     </form>
+
+    <div id="connectingFlights">
+        <h2>Connecting Flights</h2>
+        </div>
+
+    <button type="button" onclick="addConnectingFlight()">Add Connecting Flight</button>
+    <button type="button" onclick="generateItinerary()">Generate Flight Itinerary</button>
+
+    <script>
+        let connectingFlightCount = 0;
+
+        function addConnectingFlight() {
+            connectingFlightCount++;
+            const connectingFlightsDiv = document.getElementById('connectingFlights');
+            const flightForm = document.createElement('div');
+            flightForm.classList.add('connecting-flight-form');
+            flightForm.innerHTML = `
+                <h3>Connecting Flight ${connectingFlightCount}</h3>
+                <div class="form-group">
+                    <label for="departureCity${connectingFlightCount}">Departure City:</label>
+                    <input type="text" id="departureCity${connectingFlightCount}" name="departureCity${connectingFlightCount}">
+                </div>
+                <div class="form-group">
+                    <label for="arrivalCity${connectingFlightCount}">Arrival City:</label>
+                    <input type="text" id="arrivalCity${connectingFlightCount}" name="arrivalCity${connectingFlightCount}">
+                </div>
+                <div class="form-group">
+                    <label for="departureDate${connectingFlightCount}">Departure Date:</label>
+                    <input type="date" id="departureDate${connectingFlightCount}" name="departureDate${connectingFlightCount}">
+                </div>
+                <div class="form-group">
+                    <label for="departureTime${connectingFlightCount}">Departure Time (e.g., 14:30):</label>
+                    <input type="text" id="departureTime${connectingFlightCount}" name="departureTime${connectingFlightCount}" placeholder="HH:MM">
+                </div>
+                <div class="form-group">
+                    <label for="airline${connectingFlightCount}">Airline:</label>
+                    <input type="text" id="airline${connectingFlightCount}" name="airline${connectingFlightCount}">
+                </div>
+                <div class="form-group">
+                    <label for="flightNumber${connectingFlightCount}">Flight Number:</label>
+                    <input type="text" id="flightNumber${connectingFlightCount}" name="flightNumber${connectingFlightCount}">
+                </div>
+                <button type="button" class="remove-flight-button" onclick="removeConnectingFlight(this)">Remove Flight</button>
+            `;
+            connectingFlightsDiv.appendChild(flightForm);
+        }
+
+        function removeConnectingFlight(button) {
+            const flightForm = button.parentNode;
+            flightForm.remove();
+            // You might want to re-index the connecting flight numbers if needed
+        }
+
+        function generateItinerary() {
+            const mainFormData = new FormData(document.getElementById('mainFlightForm'));
+            const mainFlightData = {};
+            mainFormData.forEach((value, key) => mainFlightData[key] = value);
+
+            const connectingFlightsData = [];
+            for (let i = 1; i <= connectingFlightCount; i++) {
+                const formData = new FormData(document.querySelector(`#connectingFlights div:nth-child(${i})`));
+                const flightData = {};
+                formData.forEach((value, key) => flightData[key.replace(/\d+$/, '')] = value); // Remove the number suffix from keys
+                connectingFlightsData.push(flightData);
+            }
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const margin = 15;
+            let y = margin + 10;
+            const lineHeight = 7;
+
+            // --- Header ---
+            pdf.setFontSize(18);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text("FLIGHT ITINERARY", margin, y);
+            y += lineHeight + 8;
+            pdf.line(margin, y - 2, pageWidth - margin, y - 2);
+
+            // --- Passenger Information ---
+            pdf.setFontSize(12);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(`Passenger: ${mainFlightData.passengerName}`, margin, y);
+            y += lineHeight;
+            pdf.text(`Booking Reference: ${mainFlightData.bookingReference}`, margin, y);
+            y += lineHeight + 5;
+
+            // --- Main Flight Details ---
+            pdf.setFontSize(14);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text("Main Flight:", margin, y);
+            y += lineHeight;
+            pdf.setFontSize(12);
+            pdf.setFont('helvetica', 'normal');
+            y = addFlightDetailsToPDF(pdf, mainFlightData, margin + 5, y, lineHeight);
+            y += 10;
+
+            // --- Connecting Flights ---
+            if (connectingFlightsData.length > 0) {
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text("Connecting Flights:", margin, y);
+                y += lineHeight;
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'normal');
+                for (const flight of connectingFlightsData) {
+                    y = addFlightDetailsToPDF(pdf, flight, margin + 5, y, lineHeight);
+                    y += 8;
+                }
+            }
+
+            // --- Important Notes ---
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'italic');
+            const notes = "Please arrive at the airport at least 2 hours prior to the scheduled departure time. Check the airline's website for any updates or changes to your flight schedule.";
+            const notesLines = pdf.splitTextToSize(notes, pageWidth - 2 * margin);
+            y += 10;
+            pdf.text("Important Notes:", margin, y);
+            y += lineHeight;
+            notesLines.forEach(line => {
+                pdf.text(line, margin, y);
+                y += lineHeight - 1;
+            });
+
+            pdf.save('flight_itinerary.pdf');
+        }
+
+        function addFlightDetailsToPDF(pdf, flightData, x, y, lineHeight) {
+            pdf.text(`From: ${flightData.departureCity ? flightData.departureCity.toUpperCase() : 'N/A'}`, x, y);
+            y += lineHeight;
+            pdf.text(`To: ${flightData.arrivalCity ? flightData.arrivalCity.toUpperCase() : 'N/A'}`, x, y);
+            y += lineHeight;
+            pdf.text(`Date: ${flightData.departureDate || 'N/A'} ${flightData.departureTime || ''}`, x, y);
+            y += lineHeight;
+            pdf.text(`Airline: ${flightData.airline || 'N/A'} - Flight: ${flightData.flightNumber ? flightData.flightNumber.toUpperCase() : 'N/A'}`, x, y);
+            return y + 5;
+        }
+    </script>
 </body>
 </html>
