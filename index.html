@@ -353,76 +353,79 @@
         const flightSegmentsContainer = document.getElementById('flightSegmentsContainer');
         const addFlightSegmentBtn = document.getElementById('addFlightSegmentBtn');
         const itineraryForm = document.getElementById('itineraryForm');
-        let segmentCounter = 0;
+        let segmentCounter = 0; // Initialize counter for unique IDs
 
         // Function to add a new flight segment input block
         function addFlightSegment() {
-            segmentCounter++;
+            segmentCounter++; // Increment counter *before* creating the new segment
+            const currentSegmentId = `segment${segmentCounter}`; // Unique ID for the segment div itself
+
             const segmentDiv = document.createElement('div');
             segmentDiv.classList.add('flight-segment');
+            segmentDiv.dataset.segmentId = currentSegmentId; // Store unique ID as data attribute
             segmentDiv.innerHTML = `
-                <h4>Flight Segment <span class="math-inline">\{segmentCounter\}</h4\>
-<button type\="button" class\="remove\-segment\-btn" data\-segment\-id\="</span>{segmentCounter}">Remove</button>
+                <h4>Flight Segment ${segmentCounter}</h4>
+                <button type="button" class="remove-segment-btn">Remove</button>
                 <div class="input-group three-cols">
                     <div>
-                        <label for="airline${segmentCounter}">Airline:</label>
-                        <input type="text" id="airline${segmentCounter}" placeholder="e.g., Global Airlines" required>
+                        <label for="${currentSegmentId}-airline">Airline:</label>
+                        <input type="text" id="${currentSegmentId}-airline" placeholder="e.g., Global Airlines" required>
                     </div>
                     <div>
-                        <label for="flightNumber${segmentCounter}">Flight Number:</label>
-                        <input type="text" id="flightNumber${segmentCounter}" placeholder="e.g., GA123" required>
+                        <label for="${currentSegmentId}-flightNumber">Flight Number:</label>
+                        <input type="text" id="${currentSegmentId}-flightNumber" placeholder="e.g., GA123" required>
                     </div>
                     <div>
-                        <label for="classService${segmentCounter}">Class:</label>
-                        <input type="text" id="classService${segmentCounter}" placeholder="e.g., Economy">
+                        <label for="${currentSegmentId}-classService">Class:</label>
+                        <input type="text" id="${currentSegmentId}-classService" placeholder="e.g., Economy">
                     </div>
                 </div>
                 <div class="input-group">
                     <div>
-                        <label for="departureAirport${segmentCounter}">Departure Airport (Code, Name):</label>
-                        <input type="text" id="departureAirport${segmentCounter}" placeholder="e.g., JFK, John F. Kennedy Int'l" required>
+                        <label for="${currentSegmentId}-departureAirport">Departure Airport (Code, Name):</label>
+                        <input type="text" id="${currentSegmentId}-departureAirport" placeholder="e.g., JFK, John F. Kennedy Int'l" required>
                     </div>
                     <div>
-                        <label for="arrivalAirport${segmentCounter}">Arrival Airport (Code, Name):</label>
-                        <input type="text" id="arrivalAirport${segmentCounter}" placeholder="e.g., LAX, Los Angeles Int'l" required>
+                        <label for="${currentSegmentId}-arrivalAirport">Arrival Airport (Code, Name):</label>
+                        <input type="text" id="${currentSegmentId}-arrivalAirport" placeholder="e.g., LAX, Los Angeles Int'l" required>
                     </div>
                 </div>
                 <div class="input-group three-cols">
                     <div>
-                        <label for="departureDate${segmentCounter}">Departure Date:</label>
-                        <input type="date" id="departureDate${segmentCounter}" required>
+                        <label for="${currentSegmentId}-departureDate">Departure Date:</label>
+                        <input type="date" id="${currentSegmentId}-departureDate" required>
                     </div>
                     <div>
-                        <label for="departureTime${segmentCounter}">Departure Time:</label>
-                        <input type="time" id="departureTime${segmentCounter}" required>
+                        <label for="${currentSegmentId}-departureTime">Departure Time:</label>
+                        <input type="time" id="${currentSegmentId}-departureTime" required>
                     </div>
                     <div>
-                        <label for="arrivalTime${segmentCounter}">Arrival Time:</label>
-                        <input type="time" id="arrivalTime${segmentCounter}" required>
+                        <label for="${currentSegmentId}-arrivalTime">Arrival Time:</label>
+                        <input type="time" id="${currentSegmentId}-arrivalTime" required>
                     </div>
                 </div>
                 <div class="input-group three-cols">
                      <div>
-                        <label for="terminalDeparture${segmentCounter}">Terminal (Dep.):</label>
-                        <input type="text" id="terminalDeparture${segmentCounter}" placeholder="e.g., T4">
+                        <label for="${currentSegmentId}-terminalDeparture">Terminal (Dep.):</label>
+                        <input type="text" id="${currentSegmentId}-terminalDeparture" placeholder="e.g., T4">
                     </div>
                      <div>
-                        <label for="terminalArrival${segmentCounter}">Terminal (Arr.):</label>
-                        <input type="text" id="terminalArrival${segmentCounter}" placeholder="e.g., TBIT">
+                        <label for="${currentSegmentId}-terminalArrival">Terminal (Arr.):</label>
+                        <input type="text" id="${currentSegmentId}-terminalArrival" placeholder="e.g., TBIT">
                     </div>
                     <div>
-                        <label for="seatNumber${segmentCounter}">Seat (Optional):</label>
-                        <input type="text" id="seatNumber${segmentCounter}" placeholder="e.g., 23A">
+                        <label for="${currentSegmentId}-seatNumber">Seat (Optional):</label>
+                        <input type="text" id="${currentSegmentId}-seatNumber" placeholder="e.g., 23A">
                     </div>
                 </div>
                 <div class="input-group">
                     <div>
-                        <label for="baggageAllowance${segmentCounter}">Baggage Allowance:</label>
-                        <input type="text" id="baggageAllowance${segmentCounter}" placeholder="e.g., 1 PC (23kg), 1 Carry-on">
+                        <label for="${currentSegmentId}-baggageAllowance">Baggage Allowance:</label>
+                        <input type="text" id="${currentSegmentId}-baggageAllowance" placeholder="e.g., 1 PC (23kg), 1 Carry-on">
                     </div>
                      <div>
-                        <label for="aircraftType${segmentCounter}">Aircraft Type:</label>
-                        <input type="text" id="aircraftType${segmentCounter}" placeholder="e.g., Boeing 737">
+                        <label for="${currentSegmentId}-aircraftType">Aircraft Type:</label>
+                        <input type="text" id="${currentSegmentId}-aircraftType" placeholder="e.g., Boeing 737">
                     </div>
                 </div>
             `;
@@ -431,11 +434,94 @@
             // Add event listener to the new remove button
             segmentDiv.querySelector('.remove-segment-btn').addEventListener('click', function() {
                 segmentDiv.remove();
-                // Re-label segments if you want consecutive numbering after removal (optional, more complex)
+                // We don't re-number segments here, as it can be complex and often unnecessary.
+                // The iteration for PDF generation will just collect existing segments.
             });
         }
 
         // Add the first flight segment on page load
         addFlightSegment();
 
-        // Event listener for adding more
+        // Event listener for adding more segments
+        addFlightSegmentBtn.addEventListener('click', addFlightSegment);
+
+        // Handle form submission
+        itineraryForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            // 1. Get form values (global details)
+            const paxFullName = document.getElementById('paxFullName').value;
+            const pnr = document.getElementById('pnr').value;
+            const ticketNumber = document.getElementById('ticketNumber').value;
+            const bookingDate = document.getElementById('bookingDate').value;
+            const contactEmail = document.getElementById('contactEmail').value;
+            const notes = document.getElementById('notes').value;
+
+            // Get all flight segments
+            const flightSegments = [];
+            // Iterate over each flight segment div that currently exists
+            document.querySelectorAll('.flight-segment').forEach(segmentDiv => {
+                const currentSegmentId = segmentDiv.dataset.segmentId; // Get the unique ID from the data attribute
+                flightSegments.push({
+                    airline: document.getElementById(`${currentSegmentId}-airline`).value,
+                    flightNumber: document.getElementById(`${currentSegmentId}-flightNumber`).value,
+                    classService: document.getElementById(`${currentSegmentId}-classService`).value,
+                    departureAirport: document.getElementById(`${currentSegmentId}-departureAirport`).value,
+                    arrivalAirport: document.getElementById(`${currentSegmentId}-arrivalAirport`).value,
+                    departureDate: document.getElementById(`${currentSegmentId}-departureDate`).value,
+                    departureTime: document.getElementById(`${currentSegmentId}-departureTime`).value,
+                    arrivalTime: document.getElementById(`${currentSegmentId}-arrivalTime`).value,
+                    terminalDeparture: document.getElementById(`${currentSegmentId}-terminalDeparture`).value,
+                    terminalArrival: document.getElementById(`${currentSegmentId}-terminalArrival`).value,
+                    seatNumber: document.getElementById(`${currentSegmentId}-seatNumber`).value,
+                    baggageAllowance: document.getElementById(`${currentSegmentId}-baggageAllowance`).value,
+                    aircraftType: document.getElementById(`${currentSegmentId}-aircraftType`).value,
+                });
+            });
+
+            // 2. Populate the hidden PDF template
+            document.getElementById('pdfPaxFullName').textContent = paxFullName || 'N/A';
+            document.getElementById('pdfPnr').textContent = pnr || 'N/A';
+            document.getElementById('pdfTicketNumber').textContent = ticketNumber || 'N/A';
+            document.getElementById('pdfBookingDate').textContent = bookingDate || 'N/A';
+            document.getElementById('pdfContactEmail').textContent = contactEmail || 'N/A';
+            document.getElementById('pdfUserNotes').textContent = notes ? `User Notes: ${notes}` : '';
+
+            const pdfFlightSegmentsContainer = document.getElementById('pdfFlightSegments');
+            pdfFlightSegmentsContainer.innerHTML = ''; // Clear previous segments
+
+            flightSegments.forEach((segment, index) => {
+                const segmentHtml = `
+                    <div class="flight-segment-pdf">
+                        <h3>Flight ${index + 1} (${segment.airline} ${segment.flightNumber})</h3>
+                        <div class="detail-row"><span class="detail-label">Route:</span> <span class="detail-value">${segment.departureAirport} to ${segment.arrivalAirport}</span></div>
+                        <div class="detail-row"><span class="detail-label">Date:</span> <span class="detail-value">${segment.departureDate}</span></div>
+                        <div class="detail-row"><span class="detail-label">Departure:</span> <span class="detail-value">${segment.departureTime} ${segment.terminalDeparture ? `(Terminal: ${segment.terminalDeparture})` : ''}</span></div>
+                        <div class="detail-row"><span class="detail-label">Arrival:</span> <span class="detail-value">${segment.arrivalTime} ${segment.terminalArrival ? `(Terminal: ${segment.terminalArrival})` : ''}</span></div>
+                        <div class="detail-row"><span class="detail-label">Class:</span> <span class="detail-value">${segment.classService || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="detail-label">Seat:</span> <span class="detail-value">${segment.seatNumber || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="detail-label">Baggage:</span> <span class="detail-value">${segment.baggageAllowance || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="detail-label">Aircraft:</span> <span class="detail-value">${segment.aircraftType || 'N/A'}</span></div>
+                    </div>
+                `;
+                pdfFlightSegmentsContainer.insertAdjacentHTML('beforeend', segmentHtml);
+            });
+
+            // 3. Generate PDF
+            const element = document.getElementById('itineraryContent');
+            const options = {
+                margin: [15, 10, 15, 10], // top, left, bottom, right
+                filename: `Flight_Itinerary_${pnr || 'Generated'}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Use a slight delay to ensure all content is rendered before PDF generation
+            setTimeout(() => {
+                html2pdf().set(options).from(element).save();
+            }, 100); // 100ms delay
+        });
+    </script>
+</body>
+</html>
