@@ -344,7 +344,7 @@
 
         <div class="section-title">Important Notes</div>
         <div class="notes-section" id="pdfNotes">
-            <p>Please reconfirm your flight times 24-48 hours prior to departure. Baggage allowances are subject to airline policies. Please check your airline's website for the most up-to-date information regarding baggage, check-in, and specific flight requirements. Arrive at the airport well in advance of your scheduled departure time.</p>
+            <p>Please reconfirm your flight times 24-48 hours prior to departure. Baggage allowances are subject to airline policies. Please check your airline's website for the most up-to-date information regarding baggage, check-in, and specific flight requirements. Arprive at the airport well in advance of your scheduled departure time.</p>
             <p id="pdfUserNotes"></p>
         </div>
 
@@ -460,12 +460,15 @@
             const contactEmail = document.getElementById('contactEmail').value;
             const notes = document.getElementById('notes').value;
 
+            console.log('Collecting form data...');
+            console.log('Pax Full Name:', paxFullName);
+            console.log('PNR:', pnr);
+
             // 2. Collect details for each flight segment dynamically
             const flightSegments = [];
-            // Iterate over each div with the class 'flight-segment' currently in the DOM
             document.querySelectorAll('.flight-segment').forEach(segmentDiv => {
-                const currentSegmentId = segmentDiv.dataset.segmentId; // Retrieve the unique ID stored in the data attribute
-                flightSegments.push({
+                const currentSegmentId = segmentDiv.dataset.segmentId;
+                const segmentData = {
                     airline: document.getElementById(`${currentSegmentId}-airline`).value,
                     flightNumber: document.getElementById(`${currentSegmentId}-flightNumber`).value,
                     classService: document.getElementById(`${currentSegmentId}-classService`).value,
@@ -479,8 +482,12 @@
                     seatNumber: document.getElementById(`${currentSegmentId}-seatNumber`).value,
                     baggageAllowance: document.getElementById(`${currentSegmentId}-baggageAllowance`).value,
                     aircraftType: document.getElementById(`${currentSegmentId}-aircraftType`).value,
-                });
+                };
+                flightSegments.push(segmentData);
+                console.log(`Segment ${currentSegmentId} Data:`, segmentData);
             });
+            console.log('All flight segments collected:', flightSegments);
+
 
             // 3. Populate the hidden PDF template with collected data
             document.getElementById('pdfPaxFullName').textContent = paxFullName || 'N/A';
@@ -497,11 +504,11 @@
             flightSegments.forEach((segment, index) => {
                 const segmentHtml = `
                     <div class="flight-segment-pdf">
-                        <h3>Flight ${index + 1} (${segment.airline} ${segment.flightNumber})</h3>
-                        <div class="detail-row"><span class="detail-label">Route:</span> <span class="detail-value">${segment.departureAirport} to ${segment.arrivalAirport}</span></div>
-                        <div class="detail-row"><span class="detail-label">Date:</span> <span class="detail-value">${segment.departureDate}</span></div>
-                        <div class="detail-row"><span class="detail-label">Departure:</span> <span class="detail-value">${segment.departureTime} ${segment.terminalDeparture ? `(Terminal: ${segment.terminalDeparture})` : ''}</span></div>
-                        <div class="detail-row"><span class="detail-label">Arrival:</span> <span class="detail-value">${segment.arrivalTime} ${segment.terminalArrival ? `(Terminal: ${segment.terminalArrival})` : ''}</span></div>
+                        <h3>Flight ${index + 1} (${segment.airline || 'N/A'} ${segment.flightNumber || 'N/A'})</h3>
+                        <div class="detail-row"><span class="detail-label">Route:</span> <span class="detail-value">${segment.departureAirport || 'N/A'} to ${segment.arrivalAirport || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="detail-label">Date:</span> <span class="detail-value">${segment.departureDate || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="detail-label">Departure:</span> <span class="detail-value">${segment.departureTime || 'N/A'} ${segment.terminalDeparture ? `(Terminal: ${segment.terminalDeparture})` : ''}</span></div>
+                        <div class="detail-row"><span class="detail-label">Arrival:</span> <span class="detail-value">${segment.arrivalTime || 'N/A'} ${segment.terminalArrival ? `(Terminal: ${segment.terminalArrival})` : ''}</span></div>
                         <div class="detail-row"><span class="detail-label">Class:</span> <span class="detail-value">${segment.classService || 'N/A'}</span></div>
                         <div class="detail-row"><span class="detail-label">Seat:</span> <span class="detail-value">${segment.seatNumber || 'N/A'}</span></div>
                         <div class="detail-row"><span class="detail-label">Baggage:</span> <span class="detail-value">${segment.baggageAllowance || 'N/A'}</span></div>
@@ -511,32 +518,51 @@
                 pdfFlightSegmentsContainer.insertAdjacentHTML('beforeend', segmentHtml);
             });
 
-            // 4. Prepare the hidden element for PDF generation
             const element = document.getElementById('itineraryContent');
+            // Log the innerHTML of the element to be converted - VERY IMPORTANT FOR DEBUGGING
+            console.log('itineraryContent innerHTML before PDF generation:', element.innerHTML);
+
+            // 4. Prepare the hidden element for PDF generation
             // Temporarily make the element visible and position it off-screen
-            // This is crucial for html2canvas (used by html2pdf.js) to render its content
             element.style.display = 'block';
             element.style.position = 'absolute';
             element.style.left = '-9999px';
             element.style.top = '-9999px';
+            element.style.zIndex = '9999'; // Ensure it's on top of any other potential elements
 
-            // 5. Define PDF generation options
-            const options = {
-                margin: [15, 10, 15, 10], // top, left, bottom, right margins in mm
-                filename: `Flight_Itinerary_${pnr || 'Generated'}.pdf`, // Dynamic filename
-                image: { type: 'jpeg', quality: 0.98 }, // Image quality for embedded images
-                html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true }, // html2canvas options
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } // jsPDF options (paper size, orientation)
-            };
 
-            // 6. Generate the PDF and then hide the element again
-            html2pdf().set(options).from(element).save().then(function() {
-                // After the PDF has been generated and saved, reset the element's styles
-                element.style.display = 'none';
-                element.style.position = '';
-                element.style.left = '';
-                element.style.top = '';
-            });
+            // Small delay to ensure rendering is complete before html2canvas takes over
+            setTimeout(() => {
+                console.log('Starting PDF generation after a short delay...');
+                // 5. Define PDF generation options
+                const options = {
+                    margin: [15, 10, 15, 10], // top, left, bottom, right margins in mm
+                    filename: `Flight_Itinerary_${pnr || 'Generated'}.pdf`, // Dynamic filename
+                    image: { type: 'jpeg', quality: 0.98 }, // Image quality for embedded images
+                    html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true, useCORS: true }, // html2canvas options
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } // jsPDF options (paper size, orientation)
+                };
+
+                // 6. Generate the PDF and then hide the element again
+                html2pdf().set(options).from(element).save().then(function() {
+                    console.log('PDF generation complete. Hiding element.');
+                    // After the PDF has been generated and saved, reset the element's styles
+                    element.style.display = 'none';
+                    element.style.position = '';
+                    element.style.left = '';
+                    element.style.top = '';
+                    element.style.zIndex = '';
+                }).catch(error => {
+                    console.error('Error during PDF generation:', error);
+                    // Ensure the element is hidden even if there's an error
+                    element.style.display = 'none';
+                    element.style.position = '';
+                    element.style.left = '';
+                    element.style.top = '';
+                    element.style.zIndex = '';
+                    alert('An error occurred during PDF generation. Please check your browser console (F12) for details.');
+                });
+            }, 100); // 100ms delay to allow DOM to settle after population
         });
     </script>
 </body>
