@@ -1,202 +1,441 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Flight Itinerary Generator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Flight Itinerary Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: sans-serif; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="date"], input[type="number"] { width: 300px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:hover { background-color: #0056b3; }
-        #connectingFlights { margin-top: 20px; }
-        .connecting-flight-form { border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
-        .remove-flight-button { background-color: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-top: 10px; }
-        .remove-flight-button:hover { background-color: #c82333; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+
+        .form-section {
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+
+        .form-section h3 {
+            margin-top: 0;
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="date"],
+        input[type="time"],
+        input[type="number"],
+        textarea {
+            width: calc(100% - 22px); /* Account for padding and border */
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+            font-size: 1rem;
+        }
+
+        input[type="date"], input[type="time"] {
+            width: auto; /* Allow these to be smaller */
+            margin-right: 10px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .input-group > div {
+            flex: 1 1 calc(50% - 15px); /* Two columns */
+            min-width: 250px; /* Minimum width for single column on small screens */
+        }
+        .input-group.three-cols > div {
+            flex: 1 1 calc(33.33% - 15px); /* Three columns */
+        }
+
+
+        .flight-segment {
+            border: 1px dashed #a0a0a0;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: #fcfcfc;
+            position: relative;
+        }
+
+        .flight-segment h4 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+
+        .remove-segment-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .remove-segment-btn:hover {
+            background-color: #c0392b;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 25px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #addFlightSegmentBtn {
+            background-color: #007bff;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        #addFlightSegmentBtn:hover {
+            background-color: #0056b3;
+        }
+
+        /* --- PDF Template Styling (Hidden by default) --- */
+        #itineraryContent {
+            display: none; /* Keep hidden on the web page */
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            width: 210mm; /* A4 width */
+            padding: 20mm; /* Similar to print margins */
+            box-sizing: border-box;
+            background-color: #fff;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        #itineraryContent .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #itineraryContent .header .logo {
+            width: 120px; /* Adjust logo size for PDF */
+            height: auto;
+            margin-right: 20px;
+        }
+
+        #itineraryContent .header .agency-info {
+            text-align: right;
+            font-size: 9pt;
+        }
+        #itineraryContent .header .agency-info h2 {
+             font-size: 14pt;
+             color: #2c3e50;
+             margin: 0 0 5px 0;
+             text-align: right;
+        }
+        #itineraryContent .header .agency-info p {
+            margin: 0;
+        }
+
+        #itineraryContent h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 18pt;
+            margin-top: 0;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+        }
+
+        #itineraryContent .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #34495e;
+            border-bottom: 1px solid #b2d8e7;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        #itineraryContent .detail-row {
+            display: flex;
+            margin-bottom: 5px;
+            font-size: 10pt;
+        }
+
+        #itineraryContent .detail-label {
+            flex: 1;
+            font-weight: bold;
+            color: #555;
+        }
+
+        #itineraryContent .detail-value {
+            flex: 2;
+            color: #333;
+        }
+
+        #itineraryContent .flight-segment-pdf {
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        #itineraryContent .flight-segment-pdf h3 {
+            font-size: 11pt;
+            color: #2980b9;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        #itineraryContent .notes-section {
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+            font-size: 9pt;
+            color: #666;
+        }
+
+        #itineraryContent .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 8pt;
+            color: #888;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script>
-        let connectingFlightCount = 0;
-
-        function addConnectingFlight() {
-            connectingFlightCount++;
-            const connectingFlightsDiv = document.getElementById('connectingFlights');
-            const flightForm = document.createElement('div');
-            flightForm.classList.add('connecting-flight-form');
-            flightForm.innerHTML = `
-                <h3>Connecting Flight ${connectingFlightCount}</h3>
-                <div class="form-group">
-                    <label for="departureCity${connectingFlightCount}">Departure City:</label>
-                    <input type="text" id="departureCity${connectingFlightCount}" name="departureCity${connectingFlightCount}">
-                </div>
-                <div class="form-group">
-                    <label for="arrivalCity${connectingFlightCount}">Arrival City:</label>
-                    <input type="text" id="arrivalCity${connectingFlightCount}" name="arrivalCity${connectingFlightCount}">
-                </div>
-                <div class="form-group">
-                    <label for="departureDate${connectingFlightCount}">Departure Date:</label>
-                    <input type="date" id="departureDate${connectingFlightCount}" name="departureDate${connectingFlightCount}">
-                </div>
-                <div class="form-group">
-                    <label for="departureTime${connectingFlightCount}">Departure Time (e.g., 14:30):</label>
-                    <input type="text" id="departureTime${connectingFlightCount}" name="departureTime${connectingFlightCount}" placeholder="HH:MM">
-                </div>
-                <div class="form-group">
-                    <label for="airline${connectingFlightCount}">Airline:</label>
-                    <input type="text" id="airline${connectingFlightCount}" name="airline${connectingFlightCount}">
-                </div>
-                <div class="form-group">
-                    <label for="flightNumber${connectingFlightCount}">Flight Number:</label>
-                    <input type="text" id="flightNumber${connectingFlightCount}" name="flightNumber${connectingFlightCount}">
-                </div>
-                <button type="button" class="remove-flight-button" onclick="removeConnectingFlight(this)">Remove Flight</button>
-            `;
-            connectingFlightsDiv.appendChild(flightForm);
-        }
-
-        function removeConnectingFlight(button) {
-            const flightForm = button.parentNode;
-            flightForm.remove();
-            // You might want to re-index the connecting flight numbers if needed for display
-        }
-
-        function generateItinerary() {
-            const mainFormData = new FormData(document.getElementById('mainFlightForm'));
-            const mainFlightData = {};
-            mainFormData.forEach((value, key) => mainFlightData[key] = value);
-
-            const connectingFlightsData = [];
-            const connectingFlightForms = document.querySelectorAll('#connectingFlights .connecting-flight-form');
-            connectingFlightForms.forEach(form => {
-                const formData = new FormData(form);
-                const flightData = {};
-                formData.forEach((value, key) => flightData[key.replace(/\d+$/, '')] = value); // Remove the number suffix from keys
-                connectingFlightsData.push(flightData);
-            });
-
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF();
-
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const margin = 15;
-            let y = margin + 10;
-            const lineHeight = 7;
-
-            // --- Header ---
-            pdf.setFontSize(18);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text("FLIGHT ITINERARY", margin, y);
-            y += lineHeight + 8;
-            pdf.line(margin, y - 2, pageWidth - margin, y - 2);
-
-            // --- Passenger Information ---
-            pdf.setFontSize(12);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(`Passenger: ${mainFlightData.passengerName}`, margin, y);
-            y += lineHeight;
-            pdf.text(`Booking Reference: ${mainFlightData.bookingReference}`, margin, y);
-            y += lineHeight + 5;
-
-            // --- Main Flight Details ---
-            pdf.setFontSize(14);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text("Main Flight:", margin, y);
-            y += lineHeight;
-            pdf.setFontSize(12);
-            pdf.setFont('helvetica', 'normal');
-            y = addFlightDetailsToPDF(pdf, mainFlightData, margin + 5, y, lineHeight);
-            y += 10;
-
-            // --- Connecting Flights ---
-            if (connectingFlightsData.length > 0) {
-                pdf.setFontSize(14);
-                pdf.setFont('helvetica', 'bold');
-                pdf.text("Connecting Flights:", margin, y);
-                y += lineHeight;
-                pdf.setFontSize(12);
-                pdf.setFont('helvetica', 'normal');
-                for (let i = 0; i < connectingFlightsData.length; i++) {
-                    const flight = connectingFlightsData[i];
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text(`Connecting Flight ${i + 1}:`, margin + 5, y);
-                    y += lineHeight;
-                    pdf.setFont('helvetica', 'normal');
-                    y = addFlightDetailsToPDF(pdf, flight, margin + 10, y, lineHeight);
-                    y += 8;
-                }
-            }
-
-            // --- Important Notes ---
-            pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'italic');
-            const notes = "Please arrive at the airport at least 2 hours prior to the scheduled departure time. Check the airline's website for any updates or changes to your flight schedule.";
-            const notesLines = pdf.splitTextToSize(notes, pageWidth - 2 * margin);
-            y += 10;
-            pdf.text("Important Notes:", margin, y);
-            y += lineHeight;
-            notesLines.forEach(line => {
-                pdf.text(line, margin, y);
-                y += lineHeight - 1;
-            });
-
-            pdf.save('flight_itinerary.pdf');
-        }
-
-        function addFlightDetailsToPDF(pdf, flightData, x, y, lineHeight) {
-            pdf.text(`From: ${flightData.departureCity ? flightData.departureCity.toUpperCase() : 'N/A'}`, x, y);
-            y += lineHeight;
-            pdf.text(`To: ${flightData.arrivalCity ? flightData.arrivalCity.toUpperCase() : 'N/A'}`, x, y);
-            y += lineHeight;
-            pdf.text(`Date: ${flightData.departureDate || 'N/A'} ${flightData.departureTime || ''}`, x, y);
-            y += lineHeight;
-            pdf.text(`Airline: ${flightData.airline || 'N/A'} - Flight: ${flightData.flightNumber ? flightData.flightNumber.toUpperCase() : 'N/A'}`, x, y);
-            return y + 5;
-        }
-    </script>
 </head>
 <body>
-    <h1>Generate Your Flight Itinerary</h1>
-    <form id="mainFlightForm">
-        <h2>Main Flight</h2>
-        <div class="form-group">
-            <label for="passengerName">Passenger Name:</label>
-            <input type="text" id="passengerName" name="passengerName" required>
-        </div>
-        <div class="form-group">
-            <label for="departureCity">Departure City:</label>
-            <input type="text" id="departureCity" name="departureCity" required>
-        </div>
-        <div class="form-group">
-            <label for="arrivalCity">Arrival City:</label>
-            <input type="text" id="arrivalCity" name="arrivalCity" required>
-        </div>
-        <div class="form-group">
-            <label for="departureDate">Departure Date:</label>
-            <input type="date" id="departureDate" name="departureDate" required>
-        </div>
-        <div class="form-group">
-            <label for="departureTime">Departure Time (e.g., 14:30):</label>
-            <input type="text" id="departureTime" name="departureTime" placeholder="HH:MM">
-        </div>
-        <div class="form-group">
-            <label for="airline">Airline:</label>
-            <input type="text" id="airline" name="airline">
-        </div>
-        <div class="form-group">
-            <label for="flightNumber">Flight Number:</label>
-            <input type="text" id="flightNumber" name="flightNumber">
-        </div>
-        <div class="form-group">
-            <label for="bookingReference">Booking Reference:</label>
-            <input type="text" id="bookingReference" name="bookingReference">
-        </div>
-    </form>
 
-    <div id="connectingFlights">
-        <h2>Connecting Flights</h2>
+    <div class="container">
+        <h1>Generate Your Flight Itinerary</h1>
+        <p>Please fill out the form below to create your personalized flight itinerary PDF. This will be generated locally in your browser.</p>
+
+        <form id="itineraryForm">
+            <div class="form-section">
+                <h3>Passenger & Booking Details</h3>
+                <div class="input-group">
+                    <div>
+                        <label for="paxFullName">Passenger Full Name(s):</label>
+                        <input type="text" id="paxFullName" placeholder="e.g., John / DOE" required>
+                    </div>
+                    <div>
+                        <label for="pnr">PNR / Booking Reference:</label>
+                        <input type="text" id="pnr" placeholder="e.g., ABCDEF" required>
+                    </div>
+                </div>
+                 <div class="input-group">
+                    <div>
+                        <label for="ticketNumber">E-Ticket Number(s):</label>
+                        <input type="text" id="ticketNumber" placeholder="e.g., 001-1234567890">
+                    </div>
+                    <div>
+                        <label for="bookingDate">Booking Date:</label>
+                        <input type="date" id="bookingDate">
+                    </div>
+                </div>
+                <label for="contactEmail">Contact Email:</label>
+                <input type="email" id="contactEmail" placeholder="e.g., john.doe@example.com">
+            </div>
+
+            <div class="form-section">
+                <h3>Flight Segments</h3>
+                <div id="flightSegmentsContainer">
+                    </div>
+                <button type="button" id="addFlightSegmentBtn">Add Another Flight Segment</button>
+            </div>
+
+            <div class="form-section">
+                <h3>Additional Information</h3>
+                <label for="notes">Special Notes / Important Information:</label>
+                <textarea id="notes" placeholder="e.g., Baggage allowance, check-in instructions, visa requirements."></textarea>
+            </div>
+
+            <button type="submit">Generate PDF Itinerary</button>
+        </form>
     </div>
 
-    <button type="button" onclick="addConnectingFlight()">Add Connecting Flight</button>
-    <button type="button" onclick="generateItinerary()">Generate Flight Itinerary</button>
-</body>
-</html>
+    <div id="itineraryContent">
+        <div class="header">
+            <img src="logo.png" alt="Company Logo" class="logo">
+            <div class="agency-info">
+                <h2>Global Travel Co.</h2>
+                <p>123 Travel Lane, Suite 400</p>
+                <p>Journey City, TX 75001, USA</p>
+                <p>Phone: +1 (800) 555-TRAVEL</p>
+                <p>Email: bookings@globaltravel.com</p>
+                <p>Website: www.globaltravel.com</p>
+            </div>
+        </div>
+
+        <h1>FLIGHT ITINERARY</h1>
+
+        <div class="section-title">Passenger & Booking Details</div>
+        <div class="detail-row"><span class="detail-label">Passenger Name(s):</span> <span class="detail-value" id="pdfPaxFullName"></span></div>
+        <div class="detail-row"><span class="detail-label">PNR / Booking Ref:</span> <span class="detail-value" id="pdfPnr"></span></div>
+        <div class="detail-row"><span class="detail-label">E-Ticket Number(s):</span> <span class="detail-value" id="pdfTicketNumber"></span></div>
+        <div class="detail-row"><span class="detail-label">Booking Date:</span> <span class="detail-value" id="pdfBookingDate"></span></div>
+        <div class="detail-row"><span class="detail-label">Contact Email:</span> <span class="detail-value" id="pdfContactEmail"></span></div>
+
+        <div class="section-title">Flight Details</div>
+        <div id="pdfFlightSegments">
+            </div>
+
+        <div class="section-title">Important Notes</div>
+        <div class="notes-section" id="pdfNotes">
+            <p>Please reconfirm your flight times 24-48 hours prior to departure. Baggage allowances are subject to airline policies. Please check your airline's website for the most up-to-date information regarding baggage, check-in, and specific flight requirements. Arrive at the airport well in advance of your scheduled departure time.</p>
+            <p id="pdfUserNotes"></p>
+        </div>
+
+        <div class="footer">
+            <p>This is a computer-generated document and does not require a signature.</p>
+            <p>&copy; 2025 Global Travel Co. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        const flightSegmentsContainer = document.getElementById('flightSegmentsContainer');
+        const addFlightSegmentBtn = document.getElementById('addFlightSegmentBtn');
+        const itineraryForm = document.getElementById('itineraryForm');
+        let segmentCounter = 0;
+
+        // Function to add a new flight segment input block
+        function addFlightSegment() {
+            segmentCounter++;
+            const segmentDiv = document.createElement('div');
+            segmentDiv.classList.add('flight-segment');
+            segmentDiv.innerHTML = `
+                <h4>Flight Segment <span class="math-inline">\{segmentCounter\}</h4\>
+<button type\="button" class\="remove\-segment\-btn" data\-segment\-id\="</span>{segmentCounter}">Remove</button>
+                <div class="input-group three-cols">
+                    <div>
+                        <label for="airline${segmentCounter}">Airline:</label>
+                        <input type="text" id="airline${segmentCounter}" placeholder="e.g., Global Airlines" required>
+                    </div>
+                    <div>
+                        <label for="flightNumber${segmentCounter}">Flight Number:</label>
+                        <input type="text" id="flightNumber${segmentCounter}" placeholder="e.g., GA123" required>
+                    </div>
+                    <div>
+                        <label for="classService${segmentCounter}">Class:</label>
+                        <input type="text" id="classService${segmentCounter}" placeholder="e.g., Economy">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div>
+                        <label for="departureAirport${segmentCounter}">Departure Airport (Code, Name):</label>
+                        <input type="text" id="departureAirport${segmentCounter}" placeholder="e.g., JFK, John F. Kennedy Int'l" required>
+                    </div>
+                    <div>
+                        <label for="arrivalAirport${segmentCounter}">Arrival Airport (Code, Name):</label>
+                        <input type="text" id="arrivalAirport${segmentCounter}" placeholder="e.g., LAX, Los Angeles Int'l" required>
+                    </div>
+                </div>
+                <div class="input-group three-cols">
+                    <div>
+                        <label for="departureDate${segmentCounter}">Departure Date:</label>
+                        <input type="date" id="departureDate${segmentCounter}" required>
+                    </div>
+                    <div>
+                        <label for="departureTime${segmentCounter}">Departure Time:</label>
+                        <input type="time" id="departureTime${segmentCounter}" required>
+                    </div>
+                    <div>
+                        <label for="arrivalTime${segmentCounter}">Arrival Time:</label>
+                        <input type="time" id="arrivalTime${segmentCounter}" required>
+                    </div>
+                </div>
+                <div class="input-group three-cols">
+                     <div>
+                        <label for="terminalDeparture${segmentCounter}">Terminal (Dep.):</label>
+                        <input type="text" id="terminalDeparture${segmentCounter}" placeholder="e.g., T4">
+                    </div>
+                     <div>
+                        <label for="terminalArrival${segmentCounter}">Terminal (Arr.):</label>
+                        <input type="text" id="terminalArrival${segmentCounter}" placeholder="e.g., TBIT">
+                    </div>
+                    <div>
+                        <label for="seatNumber${segmentCounter}">Seat (Optional):</label>
+                        <input type="text" id="seatNumber${segmentCounter}" placeholder="e.g., 23A">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div>
+                        <label for="baggageAllowance${segmentCounter}">Baggage Allowance:</label>
+                        <input type="text" id="baggageAllowance${segmentCounter}" placeholder="e.g., 1 PC (23kg), 1 Carry-on">
+                    </div>
+                     <div>
+                        <label for="aircraftType${segmentCounter}">Aircraft Type:</label>
+                        <input type="text" id="aircraftType${segmentCounter}" placeholder="e.g., Boeing 737">
+                    </div>
+                </div>
+            `;
+            flightSegmentsContainer.appendChild(segmentDiv);
+
+            // Add event listener to the new remove button
+            segmentDiv.querySelector('.remove-segment-btn').addEventListener('click', function() {
+                segmentDiv.remove();
+                // Re-label segments if you want consecutive numbering after removal (optional, more complex)
+            });
+        }
+
+        // Add the first flight segment on page load
+        addFlightSegment();
+
+        // Event listener for adding more
